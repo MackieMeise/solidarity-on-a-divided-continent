@@ -1,6 +1,5 @@
 #### LOAD NECESSARY PACKAGES ####
 
-
 library(readstata13)
 library(tidyverse)
 library(ggplot2)
@@ -462,159 +461,16 @@ df_test <- df1 %>%
   summarise(count=n(), solsal=sum(solidaritysalience), solfee=sum(solidarityfeel)) %>%
   mutate(sallvl=solsal/count, feelvl=solfee/count, solnet=solfee/solsal)
 
-ggplot(filter(df_test, country=="Germany" | country=="Greece"|country=="Sweden"|country=="Hungary"), aes(sallvl, solnet)) +
-  geom_point(aes(x=sallvl, y=solnet, shape=rectaxonomy2))+
-#  geom_label(aes(label=reccountry), size=2, check_overlap=T) +
-  geom_smooth(method="lm", se=F)+
-  labs(x="Share of respondents with an opinion", y="Share of respondents with an opinion\nwilling to show solidarity") +
-  facet_wrap(~country) +
-  theme_pubclean()
-ggsave("plotx.png", width=15, height=10, units="cm")
+# analyse response patterns of solidarity variable
 
-df_test <- df1 %>%
-  group_by(polselfpl, reccountry) %>%
-  summarise(count=n(), solsal=sum(solidaritysalience), solfee=sum(solidarityfeel)) %>%
-  mutate(sallvl=solsal/count, feelvl=solfee/count, solnet=solfee/solsal)
+# the graph shows the profiles of respondents - some show solidarity regardless of the country, other show none regardless. But many do indeed distinguish between countries
+p <- df1 %>%
+  group_by(id, country) %>%
+  summarise(sol=sum(solidarityfeel), dksol=sum(solidaritysalience), count=n()) %>%
+  mutate(profile=ifelse(dksol == count & sol == count,"fullsolidarity",ifelse(dksol==0,"noopinion",ifelse(sol>=0.5*dksol,"mostly solidary","mostly not solidary"))))
 
-ggplot(df_test, aes(sallvl, solnet)) +
-  geom_point(aes(x=sallvl, y=solnet))+
-  geom_label(aes(label=reccountry, colour=polselfpl), size=2, check_overlap=T) +
-  labs(x="Share of respondents with an opinion", y="Share of respondents with an opinion\nwilling to show solidarity") +
-  theme_pubclean()
-
-# show response patterns of solidarity variable
-
-p <- df1 %>% mutate(nosol=ifelse(solidarity=="0",1,0), sol=ifelse(solidarity=="1",1,0), dksol=ifelse(solidarity=="99",1,0))
-
-p1 <- p %>%
-  group_by(id, taxonomy) %>%
-  summarise(sol=sum(sol), nosol=sum(nosol), dksol=sum(dksol), count=n()) 
-
-p1 <- p1 %>%
-  mutate(solpat=ifelse(sol==count,"Solidary regardless of country", ifelse(nosol==count,"Not solidary regardless of country", ifelse(dksol==count,"Don't know responses only", ifelse(sol>nosol,"Mostly solidary", ifelse(nosol>sol,"Mostly not solidary", ifelse(sol==nosol & sol>0, "50/50", "other response pattern")))))))
-p1$solpat <- factor(p1$solpat, levels=c("Solidary regardless of country", "Mostly solidary", "50/50", "Mostly not solidary", "Not solidary regardless of country", "Don't know responses only", "Other response pattern"))
-p1 <- p1 %>% group_by(solpat, taxonomy) %>% summarise(count=n())
-
-ggplot(p1, aes(x=solpat,y=count, fill=taxonomy, label=count)) + 
-  geom_bar(stat = "identity", position=position_dodge()) + 
-  geom_text(position=position_dodge(width=0.9)) + 
-  coord_flip() + 
-  scale_fill_manual(values=c("#482677FF","#DCE319FF","#238A8DFF")) +
-  theme_pubclean()
-ggsave("plot1.png", width=15, height=10, units="cm")
-
-# plot solidarities for a centre and two periphery countries
-# Germany
-pde <- filter(df1, country=="Germany") %>%
-  group_by(reccountry) %>%
-  summarise(solidarity=sum(solidarityfeel), count=n()) %>%
-  mutate(solprop=solidarity/count)
-pde$reccountry <- as.character(pde$reccountry)
-pde["reccountry"][pde["reccountry"] == "Czechia"] <- "Czech Republic"
-
-make_map(
-  geography = create_geography(
-    insets= c("Luxembourg", "Malta", "Cyprus")
-  ),
-  palette = create_palette(
-    member_states = pde$reccountry,
-    values=pde$solprop,
-    count_colors = 10,
-    value_min = 0.25,
-    value_max = 0.75,
-    color_low = c(0,44,248),
-    color_mid = c(255,255,255),
-    color_high = c(248,44,0)
-  ),
-  theme = create_theme(),
-  title="Germany"
-)
-ggsave("mapde.png", width=30, height=20, units="cm")
-
-# Romania
-pro <- filter(df1, country=="Romania") %>%
-  group_by(reccountry) %>%
-  summarise(solidarity=sum(solidarityfeel), count=n()) %>%
-  mutate(solprop=solidarity/count)
-pro$reccountry <- as.character(pro$reccountry)
-pro["reccountry"][pro["reccountry"] == "Czechia"] <- "Czech Republic"
-
-make_map(
-  geography = create_geography(
-    insets= c("Luxembourg", "Malta", "Cyprus")
-  ),
-  palette = create_palette(
-    member_states = pro$reccountry,
-    values=pro$solprop,
-    count_colors = 10,
-    value_min = 0.25,
-    value_max = 0.75,
-    color_low = c(0,44,248),
-    color_mid = c(255,255,255),
-    color_high = c(248,44,0)
-  ),
-  theme = create_theme(),
-  title="Romania"
-)
-ggsave("mapro.png", width=30, height=20, units="cm")
-
-# Sweden
-pse <- filter(df1, country=="Sweden") %>%
-  group_by(reccountry) %>%
-  summarise(solidarity=sum(solidarityfeel), count=n()) %>%
-  mutate(solprop=solidarity/count)
-pse$reccountry <- as.character(pse$reccountry)
-pse["reccountry"][pse["reccountry"] == "Czechia"] <- "Czech Republic"
-
-mapse <- make_map(
-  geography = create_geography(
-    insets= c("Luxembourg", "Malta", "Cyprus")
-  ),
-  palette = create_palette(
-    member_states = pse$reccountry,
-    values=pse$solprop,
-    count_colors = 10,
-    value_min = 0.25,
-    value_max = 0.75,
-    color_low = c(0,44,248),
-    color_mid = c(255,255,255),
-    color_high = c(248,44,0)
-  ),
-  theme = create_theme(),
-  title="Sweden"
-)
-ggsave("mapse.png", width=30, height=20, units="cm")
-
-# Spain
-pes <- filter(df1, country=="Spain") %>%
-  group_by(reccountry) %>%
-  summarise(solidarity=sum(solidarityfeel), count=n()) %>%
-  mutate(solprop=solidarity/count)
-pes$reccountry <- as.character(pes$reccountry)
-pes["reccountry"][pes["reccountry"] == "Czechia"] <- "Czech Republic"
-
-mapes <- make_map(
-  geography = create_geography(
-    insets= c("Luxembourg", "Malta", "Cyprus")
-  ),
-  palette = create_palette(
-    member_states = pes$reccountry,
-    values=pes$solprop,
-    count_colors = 10,
-    value_min = 0.25,
-    value_max = 0.75,
-    color_low = c(0,44,248),
-    color_mid = c(255,255,255),
-    color_high = c(248,44,0)
-  ),
-  theme = create_theme(),
-  title="Spain"
-)
-ggsave("mapes.png", width=30, height=20, units="cm")
-
-dfs <- df1 %>%
-  group_by(taxonomy2, inflcntry) %>%
-  summarise(count=n(), ratio=count/sum(count))
+ggplot(p, aes(x=country, fill=profile)) +
+  geom_bar(position="fill")
 
 #### PROVIDE SUMMARY STATISTICS ####
 outcomedata <- filter(df1, solidaritysalience==1)
