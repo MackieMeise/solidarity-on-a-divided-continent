@@ -98,29 +98,27 @@ df["age"][df["age"] == "4"] <- "45 - 54"
 df["age"][df["age"] == "5"] <- "55+"
 df$age <- as.factor(df$age)
 
-df$polselfpl <- as.character(df$polselfpl)
-df["polselfpl"][df["polselfpl"] == "1"] <- "Left"
-df["polselfpl"][df["polselfpl"] == "2"] <- "Left"
-df["polselfpl"][df["polselfpl"] == "3"] <- "Centre"
-df["polselfpl"][df["polselfpl"] == "4"] <- "Centre"
-df["polselfpl"][df["polselfpl"] == "5"] <- "Centre"
-df["polselfpl"][df["polselfpl"] == "6"] <- "Right"
-df["polselfpl"][df["polselfpl"] == "7"] <- "Right"
-df["polselfpl"][df["polselfpl"] == "8"] <- NA
-df["polselfpl"][df["polselfpl"] == "100"] <- NA
-df$polselfpl <- as.factor(df$polselfpl)
+df <- df %>%
+  mutate(polselfpl=as.character(polselfpl)) %>%
+  mutate(polselfpl=ifelse(
+    polselfpl<3,"Left",ifelse(
+      polselfpl>=3 & polselfpl<6,"Centre",ifelse(
+        polselfpl>=6 & polselfpl<8,"Right",NA
+      )
+    )
+  )) %>%
+  mutate(polselfpl=as.factor(polselfpl))
 
-df2$polselfpl <- as.character(df2$polselfpl)
-df2["polselfpl"][df2["polselfpl"] == "Very left-wing"] <- "Left"
-df2["polselfpl"][df2["polselfpl"] == "Fairly left-wing"] <- "Left"
-df2["polselfpl"][df2["polselfpl"] == "Centre"] <- "Centre"
-df2["polselfpl"][df2["polselfpl"] == "Slightly left-of-centre"] <- "Centre"
-df2["polselfpl"][df2["polselfpl"] == "Slightly right-of-centre"] <- "Centre"
-df2["polselfpl"][df2["polselfpl"] == "Fairly right-wing"] <- "Right"
-df2["polselfpl"][df2["polselfpl"] == "Very right-wing"] <- "Right"
-df2["polselfpl"][df2["polselfpl"] == "Prefer not to say"] <- NA
-df2["polselfpl"][df2["polselfpl"] == "Don't know"] <- NA
-df2$polselfpl <- as.factor(df2$polselfpl)
+df2 <- df2 %>%
+  mutate(polselfpl=as.character(polselfpl)) %>%
+  mutate(polselfpl=ifelse(
+    polselfpl=="Very left-wing"|polselfpl=="Fairly left-wing","Left",ifelse(
+      polselfpl=="Centre"|polselfpl=="Sligthly left-of-centre"|polselfpl=="Slightly right-of-centre","Centre",ifelse(
+        polselfpl=="Fairly right-wing"|polselfpl=="Very right-wing","Right",NA
+      )
+    )
+  )) %>%
+  mutate(polselfpl=as.factor(polselfpl))
 
 df$inflcntry <- as.character(df$inflcntry)
 df["inflcntry"][df["inflcntry"] == "1"] <- "Agree"
@@ -166,44 +164,33 @@ df2["fundben"][df2["fundben"] == "Loser: the resources put into this fund by $Qc
 df2["fundben"][df2["fundben"] == "Don't know"] <- NA
 df2$fundben <- as.factor(df2$fundben)
 
-df$demosat <- as.character(df$demosat)
-df["demosat"][df["demosat"] == "0"] <- "Low satistfaction"
-df["demosat"][df["demosat"] == "1"] <- "Low satistfaction"
-df["demosat"][df["demosat"] == "2"] <- "Low satistfaction"
-df["demosat"][df["demosat"] == "3"] <- "Low satistfaction"
-df["demosat"][df["demosat"] == "4"] <- "Medium satistfaction"
-df["demosat"][df["demosat"] == "5"] <- "Medium satistfaction"
-df["demosat"][df["demosat"] == "6"] <- "Medium satistfaction"
-df["demosat"][df["demosat"] == "7"] <- "Medium satistfaction"
-df["demosat"][df["demosat"] == "8"] <- "Medium satistfaction"
-df["demosat"][df["demosat"] == "9"] <- "High satistfaction"
-df["demosat"][df["demosat"] == "10"] <- "High satistfaction"
-df["demosat"][df["demosat"] == "11"] <- NA
-df$demosat <- as.factor(df$demosat)
+df <- df %>%
+  mutate(demosat=as.numeric(demosat)) %>%
+  mutate(demosat=ifelse(
+    demosat<4,"Low satisfaction",ifelse(
+      demosat>=4 & demosat<9,"Medium satisfaction",ifelse(
+        demosat>=9 & demosat<11,"High satisfaction",NA
+      )
+    )
+  )) %>%
+  mutate(demosat=as.factor(demosat))
 
-df2$demosat <- as.character(df2$demosat)
-df2["demosat"][df2["demosat"] == "0 - Extremely dissatisfied"] <- "Low satistfaction"
-df2["demosat"][df2["demosat"] == "1"] <- "Low satistfaction"
-df2["demosat"][df2["demosat"] == "2"] <- "Low satistfaction"
-df2["demosat"][df2["demosat"] == "3"] <- "Low satistfaction"
-df2["demosat"][df2["demosat"] == "4"] <- "Medium satistfaction"
-df2["demosat"][df2["demosat"] == "5"] <- "Medium satistfaction"
-df2["demosat"][df2["demosat"] == "6"] <- "Medium satistfaction"
-df2["demosat"][df2["demosat"] == "7"] <- "Medium satistfaction"
-df2["demosat"][df2["demosat"] == "8"] <- "Medium satistfaction"
-df2["demosat"][df2["demosat"] == "9"] <- "High satistfaction"
-df2["demosat"][df2["demosat"] == "10 - Extremely satisfied"] <- "High satistfaction"
-df2["demosat"][df2["demosat"] == "Don't know"] <- NA
-df2$demosat <- as.factor(df2$demosat)
+df2 <- df2 %>%
+  mutate(demosat=as.character(demosat)) %>%
+  mutate(demosat=ifelse(
+    demosat=="0 - Extremely dissatisfied"|demosat=="1"|demosat=="2"|demosat=="3","Low satisfaction",ifelse(
+      demosat=="5"|demosat=="6"|demosat=="7"|demosat=="8","Medium satisfaction", ifelse(
+        demosat=="9"|demosat=="10 - Extremely satisfied","High satisfaction",NA
+      )
+    )
+  )) %>%
+  mutate(demosat=as.factor(demosat))
 
-df$euidentity <- as.character(df$identity)
-df["euidentity"][df["euidentity"] == "1"] <- "0"
-df["euidentity"][df["euidentity"] == "2"] <- "0"
-df["euidentity"][df["euidentity"] == "3"] <- "1"
-df["euidentity"][df["euidentity"] == "4"] <- "1"
-df["euidentity"][df["euidentity"] == "5"] <- "0"
-df["euidentity"][df["euidentity"] == "6"] <- "0"
-df$euidentity <- as.factor(df$euidentity)
+df <- df %>%
+  mutate(euidentity=ifelse(
+    identity=="3"|identity=="4",1,0
+  )) %>%
+  mutate(euidentity=as.factor(euidentity))
 
 df2$euidentity <- as.character(df2$identity)
 df2["euidentity"][df2["euidentity"] == "$Qnationality only"] <- "0"
