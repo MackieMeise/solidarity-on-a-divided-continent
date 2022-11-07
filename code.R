@@ -26,7 +26,8 @@ library(broom.mixed)
 library(sampleSelection)
 library(gridExtra)
 library(miceadds)
-
+library(jtools)
+library(margins)
 
 #### LOAD THE DATA FILE ####
 
@@ -426,6 +427,9 @@ df1["rectseumbrshp"] <- NULL
 df1["drop"] <- NULL
 df1["identity"] <- NULL
 
+#### DROPPING DATASETS THAT I DONT NEED ####
+rm(list=c("countrydata", "countrypdata", "econdata", "popdata", "rawdata", "rawdata2", "culturaldistance", "socialconnectedness"))
+
 # save file for Stata ----
 write.csv(df1,"C:/Users/pclas/Desktop/Phd Stuff/country-specific solidarity/df1.csv", row.names = FALSE)
 
@@ -459,346 +463,25 @@ p <- df1 %>%
 ggplot(p, aes(x=country, fill=profile)) +
   geom_bar(position="fill")
 
-#### PROVIDE SUMMARY STATISTICS ####
-outcomedata <- filter(df1, solidaritysalience==1)
-selectiondata <- df1
-mean(outcomedata$polselfpl, na.rm=T)
-sd(outcomedata$polselfpl, na.rm=T)
-mean(selectiondata$polselfpl, na.rm=T)
-sd(selectiondata$polselfpl,na.rm=T)
-
-mean(as.numeric(outcomedata$gender, na.rm=T))
-sd(as.numeric(outcomedata$gender, na.rm=T))
-mean(as.numeric(selectiondata$gender, na.rm=T))
-sd(as.numeric(selectiondata$gender,na.rm=T))
-
-mean(selectiondata$tseumbrshp, na.rm=T)
-sd(selectiondata$tseumbrshp,na.rm=T)
-
-mean(as.numeric(outcomedata$eurombmr, na.rm=T))
-sd(as.numeric(outcomedata$eurombmr, na.rm=T))
-mean(as.numeric(selectiondata$eurombmr, na.rm=T))
-sd(as.numeric(selectiondata$eurombmr,na.rm=T))
-
-mean(as.numeric(outcomedata$receurombmr, na.rm=T))
-sd(as.numeric(outcomedata$receurombmr, na.rm=T))
-mean(as.numeric(selectiondata$receurombmr, na.rm=T))
-sd(as.numeric(selectiondata$receurombmr,na.rm=T))
-
-mean(as.numeric(outcomedata$solidarityfeel, na.rm=T))
-sd(as.numeric(outcomedata$solidarityfeel, na.rm=T))
-mean(as.numeric(selectiondata$solidaritysalience, na.rm=T))
-sd(as.numeric(selectiondata$solidaritysalience,na.rm=T))
-
-mean(as.numeric(outcomedata$euidentity), na.rm=T)
-sd(as.numeric(outcomedata$euidentity), na.rm=T)
-mean(as.numeric(selectiondata$euidentity), na.rm=T)
-sd(as.numeric(selectiondata$euidentity),na.rm=T)
-
-summary(outcomedata$age)
-summary(selectiondata$age)
-
-mean(as.numeric(outcomedata$border, na.rm=T))
-sd(as.numeric(outcomedata$border, na.rm=T))
-mean(as.numeric(selectiondata$border, na.rm=T))
-sd(as.numeric(selectiondata$border,na.rm=T))
-
-mean(as.numeric(outcomedata$sci, na.rm=T))
-sd(as.numeric(outcomedata$sci, na.rm=T))
-mean(as.numeric(selectiondata$sci, na.rm=T))
-sd(as.numeric(selectiondata$sci,na.rm=T))
-
-mean(as.numeric(selectiondata$recpopulation, na.rm=T))
-sd(as.numeric(selectiondata$recpopulation,na.rm=T))
-
-mean(as.numeric(outcomedata$gdp, na.rm=T))
-sd(as.numeric(outcomedata$gdp, na.rm=T))
-mean(as.numeric(selectiondata$gdp, na.rm=T))
-sd(as.numeric(selectiondata$gdp,na.rm=T))
-
-mean(as.numeric(outcomedata$recgdp, na.rm=T))
-sd(as.numeric(outcomedata$recgdp, na.rm=T))
-mean(as.numeric(selectiondata$recgdp, na.rm=T))
-sd(as.numeric(selectiondata$recgdp,na.rm=T))
-
-outcomedata <- outcomedata %>% mutate(inflcntry_b = ifelse(inflcntry=="Agree" | inflcntry =="Strongly agree",1, ifelse(inflcntry == "Don't know", NA,0)))
-selectiondata <- selectiondata %>% mutate(inflcntry_b = ifelse(inflcntry=="Agree" | inflcntry =="Strongly agree",1, ifelse(inflcntry == "Don't know", NA,0)))
-mean(outcomedata$inflcntry_b, na.rm=T)
-sd(outcomedata$inflcntry_b, na.rm=T)
-mean(selectiondata$inflcntry_b, na.rm=T)
-sd(selectiondata$inflcntry_b,na.rm=T)
-
-selectiondata <- selectiondata %>% mutate(inflpers_b = ifelse(inflpers=="Agree" | inflpers =="Strongly agree",1, ifelse(inflpers == "Don't know", NA,0)))
-mean(selectiondata$inflpers_b, na.rm=T)
-sd(selectiondata$inflpers_b,na.rm=T)
-
-selectiondata$demosat <- as.character(selectiondata$demosat)
-selectiondata$demosat <- as.numeric(selectiondata$demosat)
-mean(selectiondata$demosat, na.rm=T)
-sd(selectiondata$demosat,na.rm=T)
-
-test <- outcomedata %>%
-  group_by(age) %>%
-  summarise(n=n()) %>%
-  mutate(perc=n/sum(n))
-
-test <- selectiondata %>%
-  group_by(age) %>%
-  summarise(n=n()) %>%
-  mutate(perc=n/sum(n))
-
-test <- outcomedata %>%
-  group_by(taxonomy) %>%
-  summarise(n=n()) %>%
-  mutate(perc=n/sum(n))
-
-test <- selectiondata %>%
-  group_by(taxonomy) %>%
-  summarise(n=n()) %>%
-  mutate(perc=n/sum(n))
-
-test <- outcomedata %>%
-  group_by(polselfpl) %>%
-  summarise(n=n()) %>%
-  mutate(perc=n/sum(n))
-
-test <- selectiondata %>%
-  group_by(polselfpl) %>%
-  summarise(n=n()) %>%
-  mutate(perc=n/sum(n))
-
-test <- outcomedata %>%
-  group_by(demosat) %>%
-  summarise(n=n()) %>%
-  mutate(perc=n/sum(n))
-
-test <- selectiondata %>%
-  group_by(demosat) %>%
-  summarise(n=n()) %>%
-  mutate(perc=n/sum(n))
-
-test <- outcomedata %>%
-  group_by(income) %>%
-  summarise(n=n()) %>%
-  mutate(perc=n/sum(n))
-
-test <- selectiondata %>%
-  group_by(income) %>%
-  summarise(n=n()) %>%
-  mutate(perc=n/sum(n))
-
-test <- outcomedata %>%
-  group_by(fundben) %>%
-  summarise(n=n()) %>%
-  mutate(perc=n/sum(n))
-
-test <- selectiondata %>%
-  group_by(fundben) %>%
-  summarise(n=n()) %>%
-  mutate(perc=n/sum(n))
-
 #### MULTILEVEL LOGISTIC REGRESSION ####
-### First Calulcate Whether A Citizen Has An Opinion Or Not ====
-# create modeldata df
-modeldata <- filter(df1, !is.na(inflpers) & !is.na(demosat) & !is.na(inflcntry) & !is.na(identity) & !is.na(polselfpl) & !is.na(income))
+### HAND-MADE SAMPLE SELECTION MODEL ====
 
-# null model
-m0 <- glmer(solidaritysalience ~ (1|id) + (1|country), data=modeldata, family="binomial", nAGQ=0)
-performance::icc(m0, by_group=T)
-
-# only country factors
-m1<- glmer(solidaritysalience ~ recpopulation + rectseumbrshp + recgdp + rectaxonomy + receurombmr + recbailout + border + sci + (1|id) + (1|country), 
-           data=modeldata, 
-           family="binomial", 
-           nAGQ=0)
-
-#level 2 variables added
-m2<- glmer(solidaritysalience ~ recpopulation + rectseumbrshp + inflpers + demosat + inflcntry + identity + polselfpl + age + gender + income + recgdp + rectaxonomy + receurombmr + recbailout+ border + sci + (1|id) + (1|country), 
-           data=modeldata, 
-           family="binomial", 
-           nAGQ=0)
-
-#level 3 variables added
-m3<- glmer(solidaritysalience ~ recpopulation + rectseumbrshp + inflpers + demosat + inflcntry + identity + polselfpl + age + gender + income + gdp + recgdp + taxonomy + rectaxonomy + eurombmr + receurombmr + recbailout+ border + sci + (1|id) + (1|country), 
-           data=modeldata, 
-           family="binomial", 
-           nAGQ=0)
-
-#interaction effects added
-m4<- glmer(solidaritysalience ~ recpopulation + rectseumbrshp + inflpers + demosat + inflcntry + identity + polselfpl + age + gender + income + gdp + recgdp + taxonomy + rectaxonomy + eurombmr + receurombmr + recbailout+ border + sci + taxonomy*rectaxonomy + eurombmr*eurombmr + eurombmr*rectaxonomy + (1|id) + (1|country), 
-           data=df1, 
-           family="binomial", 
-           nAGQ=0)
-
-#display results of regression analysis 
-screenreg(list(m1,m2,m3,m4))
-htmlreg(list(m1, m2, m3, m4), file="regtable_sal_2.doc", single.row=T, stars=0.01)
-plot_model(m4, type="pred", terms=c("receurombmr"))
-
-# test assumptions
-
-dfx$pred <- predict(m4,type="response", newdata=dfx)
-ggplot(dfx, aes(x=culdis, y=pred)) + geom_jitter() + geom_smooth(method="glm")
-
-vif(m3)
-
-## calculate weights ----
-modeldata$pred <- predict(m4,type="response", newdata=modeldata)
-modeldata <- modeldata %>%
-  mutate(weight=(ifelse(solidaritysalience==1, 1/pred, 1/(1-pred))))
-
-modeldatad <- filter(modeldata, solidaritysalience==1)
-#calculate icc of null model
-m0 <- glmer(solidarityfeel ~ (1|id) + (1|country), data=modeldatad, family="binomial", nAGQ=0)
-performance::icc(m0, by_group=T)
-
-#level 1 variables only
-m1<- glmer(solidarityfeel ~ recgdp + rectaxonomy + receurombmr + border + sci + (1|id) + (1|country), 
-           data=modeldatad, 
-           family="binomial", 
-           nAGQ=0)
-
-m1w<- glmer(solidarityfeel ~ recgdp + rectaxonomy + receurombmr + border + sci + (1|id) + (1|country), 
-           data=modeldatad, 
-           family="binomial", 
-           nAGQ=0,
-           weights=weight)
-
-#level 2 variables added
-m2<- glmer(solidarityfeel ~ inflcntry + identity + polselfpl + age + gender + income + recgdp + rectaxonomy + receurombmr + border + sci + (1|id) + (1|country), 
-           data=modeldatad, 
-           family="binomial", 
-           nAGQ=0)
-
-m2w<- glmer(solidarityfeel ~ inflcntry + identity + polselfpl + age + gender + income + recgdp + rectaxonomy + receurombmr + border + sci + (1|id) + (1|country), 
-           data=modeldatad, 
-           family="binomial", 
-           nAGQ=0,
-           weights=weight)
-
-#level 3 variables added
-m3<- glmer(solidarityfeel ~ inflcntry + identity + polselfpl + fundben + age + gender + income + gdp + recgdp + taxonomy + rectaxonomy + eurombmr + receurombmr + border + sci + (1|id) + (1|country), 
-           data=df1, 
-           family="binomial", 
-           nAGQ=0)
-m3w<- glmer(solidarityfeel ~ inflcntry + identity + polselfpl + age + gender + income + gdp + recgdp + taxonomy + rectaxonomy + eurombmr + receurombmr + border + sci + (1|id) + (1|country), 
-           data=modeldatad, 
-           family="binomial", 
-           nAGQ=0,
-           weights=weight)
-
-#interaction effects added
-m4<- glmer(solidarityfeel ~ inflcntry + identity + polselfpl + fundben + age + gender + income + gdp + recgdp + taxonomy + rectaxonomy + eurombmr + receurombmr + border + sci + taxonomy*rectaxonomy + (1|id) + (1|country), 
-           data=df1, 
-           family="binomial", 
-           nAGQ=0)
-m5<- glmer(solidarityfeel ~ inflcntry + identity + polselfpl + fundben + age + gender + income + taxonomy + rectaxonomy + eurombmr + receurombmr + border + sci + taxonomy*rectaxonomy + (1|id) + (1|country), 
-           data=df1, 
-           family="binomial", 
-           nAGQ=0)
-m6<- glmer(solidarityfeel ~ inflcntry + identity + polselfpl + fundben + age + gender + income + gdp + recgdp + eurombmr + receurombmr + border + sci + gdp*recgdp + (1|id) + (1|country), 
-           data=df1, 
-           family="binomial", 
-           nAGQ=0)
-
-m4w<- glmer(solidarityfeel ~ inflcntry + identity + polselfpl + age + gender + income + gdp + recgdp + taxonomy + rectaxonomy + eurombmr + receurombmr + border + sci + eurombmr*receurombmr + taxonomy*rectaxonomy + eurombmr*rectaxonomy + (1|id) + (1|country), 
-           data=modeldatad, 
-           family="binomial", 
-           nAGQ=0,
-           weights=weight)
-
-#display results of regression analysis 
-screenreg(list(m1,m2,m3,m4, m1w,m2w,m3w,m4w))
-htmlreg(list(m1, m2, m3, m4, m1w, m2w, m3w, m4w), file="regtable_sal_3.doc", single.row=T, stars=0.01)
-
-#effect plotting
-plot_model(m6, type="pred", terms=c("recgdp","gdp")) +
-  labs(title="", y="Predicted probability of European fiscal solidarity", x="Recipient country") + 
-  scale_colour_manual(values=c("#ca0020", "black", "#0571b0"), name="Respondent's country") +
-  scale_fill_manual(values=c("#ca0020", "darkgrey", "#0571b0"), name="Respondent's country") +
-  theme_pubclean()
-ggsave("plotx.png", width=150, height=100, unit="mm")
-
-plot_model(m4, type="pred", terms=c("eurombmr", "receurombmr")) 
-
-
-#### experimental play around ####
-
-p <- df1 %>%
-  group_by(country, reccountry) %>%
-  summarise(solidarity=sum(ifelse(solidarity=="1",1,0)/n()))
-
-p2 <- p %>%
-  group_by(reccountry) %>%
-  summarise(solidarity=mean(solidarity))
-p3 <- p %>%
-  group_by(country) %>%
-  summarise(solidarity=mean(solidarity))
-px <- left_join(p2,p3, by=c("reccountry" = "country"))
-ggplot(px, aes(solidarity.x, solidarity.y)) + geom_point() + geom_label(aes(label=reccountry)) + geom_abline(slope=1,intercept=0)
-
-m2 <- glmer(solidarity ~ 1 + (1|id) + (1|country), data=filter(df1,solidarity!=99 & country != "United Kingdom"), family="binomial",nAGQ=0)
-m3 <- glmer(solidarity ~ border+ eurombmr*receurombmr + (1|id) + (1|country), data=filter(df1, solidarity!=99 & country != "United Kingdom"), family="binomial", nAGQ=0)
-m4 <- glmer(solidarity ~ eurombmr*receurombmr + weumbrshp*rectweumbrshp + (1|id) + (1|country), data=filter(df1, solidarity!=99 & country != "United Kingdom"), family="binomial", nAGQ=0)
-m5 <- glmer(solidarity ~ border + moneyspent2 + eurombmr*receurombmr + weumbrshp*rectweumbrshp + (1|id) + (1|country), data=filter(df1, solidarity!=99 & country != "United Kingdom"), family="binomial", nAGQ=0)
-screenreg(list(m5))
-plot_model(m5, type="pred", terms=c("eurombmr","receurombmr"))
-plot_model(m5, type="pred", terms=c("border"))
-
-mx4 <- glmer(solidarity ~ inflcntry*rectaxonomy + (1|id) + (1|country), data=df1, family="binomial", nAGQ=0)
-
-screenreg(mx4)
-screenreg(list(mx1,mx2,mx3))
-plot_model(mx3, type="pred", terms=c("taxonomy", "rectaxonomy"))
-plot_model(mx3, type="pred", terms=c("eurombmr", "receurombmr"))
-plot_model(mx4, type="pred", terms=c("inflcntry", "rectaxonomy"))
-
-vif(mx2)
-mx4 <- glmer(solidarity ~ moneyspent2 + eurombmr*receurombmr + border + culdis + (1|id) + (1|country), data=filter(df1, solidarity!=99 & eurombmr != "0" & receurombmr != "0"), family="binomial", nAGQ=0)
-plot_model(mx4, type="pred", terms=c("eurombmr", "receurombmr"))
-
-newdf <- filter(df1,solidarity!=99 & country != "United Kingdom") %>%
-  mutate(yhat=predict(mx, type="response", newdata=filter(df1,solidarity!=99 & country != "United Kingdom")))
-
-
-#### HAND-MADE SAMPLE SELECTION MODEL ####
-df2 <- df1 %>%
-  mutate(demosat=as.character(demosat),
-         polselfpl=as.character(polselfpl),
-         inflcntry=as.character(inflcntry),
-         inflpers=as.character(inflpers),
-         income=as.character(income),
-         fundben=as.character(fundben)) %>%
-  mutate(demosat=ifelse(is.na(demosat),"NA", demosat),
-         polselfpl=ifelse(is.na(polselfpl),"NA",polselfpl),
-         inflcntry=ifelse(is.na(inflcntry),"NA",inflcntry),
-         inflpers=ifelse(is.na(inflpers),"NA",inflpers),
-         income=ifelse(is.na(income),"NA",income),
-         fundben=ifelse(is.na(fundben),"NA",fundben)) %>%
-  mutate(demosat=as.factor(demosat),
-         polselfpl=as.factor(polselfpl),
-         inflcntry=as.factor(inflcntry),
-         inflpers=as.factor(inflpers),
-         income=as.factor(income),
-         fundben=as.factor(fundben))
-
-df2 <- na.omit(df2)
-
+#### Run Everything as a Model with Cluster-Robust Standard Errors ----
 cluster_selectionmodel <- function(selformula, outformula, cluster, data) {
   m1_s <- glm.cluster(selformula,
                       data=data,
                       cluster=cluster,
                       family=binomial(link="probit"))
-  
+
   first_stage_lp <- predict(m1_s$glm_res)
   data$IMR <- dnorm(first_stage_lp)/pnorm(first_stage_lp)
-  
+
   m1_o <- glm.cluster(outformula,
                       data=data,
                       cluster=cluster,
                       family=binomial(link="probit"))
   return(list(selm=m1_s, outm=m1_o))
-  
+
 }
 m1 <- cluster_selectionmodel(selformula=solidaritysalience ~ inflcntry + inflpers + demosat + fundben + income + polselfpl + age + gender + euidentity + taxonomy2 + rectaxonomy2 + border + sci + gdp + recgdp + eurombmr + receurombmr + recpopulation,
                              outformula=solidarityfeel ~ inflcntry + fundben + income + polselfpl + age + gender + euidentity + taxonomy2 + rectaxonomy2 + border + sci + gdp + recgdp + eurombmr + receurombmr + IMR,
@@ -856,12 +539,14 @@ with(summary(m2$outm$glm_res), 1 - deviance/null.deviance)
 with(summary(m3$outm$glm_res), 1 - deviance/null.deviance)
 with(summary(m4$outm$glm_res), 1 - deviance/null.deviance)
 
+#### Run Everything as a Multi-level Model ----
+
 multilevel_selectionmodel <- function(selformula, outformula, data) {
   m1_s <- glmer(selformula,
                 data=data,
                 family=binomial(link="probit"),
                 nAGQ = 0)
-
+  
   first_stage_lp <- predict(m1_s)
   data$IMR <- dnorm(first_stage_lp)/pnorm(first_stage_lp)
   
@@ -874,27 +559,23 @@ multilevel_selectionmodel <- function(selformula, outformula, data) {
 }
 
 m1ml <- multilevel_selectionmodel(selformula=solidaritysalience ~ inflcntry + inflpers + demosat + fundben + income + polselfpl + age + gender + euidentity + taxonomy2 + rectaxonomy2 + border + sci + gdp + recgdp + eurombmr + receurombmr + recpopulation + year + (1|id),
-                             outformula=solidarityfeel ~ inflcntry + fundben + income + polselfpl + age + gender + euidentity + taxonomy2 + rectaxonomy2 + border + sci + gdp + recgdp + eurombmr + receurombmr + IMR + year + (1|id),
-                             data=df2)
+                                  outformula=solidarityfeel ~ inflcntry + fundben + income + polselfpl + age + gender + euidentity + taxonomy2 + rectaxonomy2 + border + sci + gdp + recgdp + eurombmr + receurombmr + IMR + year + (1|id),
+                                  data=df2)
 
 m2ml <- multilevel_selectionmodel(selformula=solidaritysalience ~ inflcntry + inflpers + demosat + fundben + income + polselfpl + age + gender + euidentity + taxonomy2 + rectaxonomy2 + border + sci + gdp + recgdp + eurombmr + receurombmr + recpopulation + taxonomy2*rectaxonomy2+ year + (1|id),
-                             outformula=solidarityfeel ~ inflcntry + fundben + income + polselfpl + age + gender + euidentity + taxonomy2 + rectaxonomy2 + border + sci + gdp + recgdp + eurombmr + receurombmr + taxonomy2*rectaxonomy2 + IMR+ year + (1|id),
-                             data=df2)
+                                  outformula=solidarityfeel ~ inflcntry + fundben + income + polselfpl + age + gender + euidentity + taxonomy2 + rectaxonomy2 + border + sci + gdp + recgdp + eurombmr + receurombmr + taxonomy2*rectaxonomy2 + IMR+ year + (1|id),
+                                  data=df2)
 
 m3ml <- multilevel_selectionmodel(selformula=solidaritysalience ~ inflcntry + inflpers + demosat + fundben + income + polselfpl + age + gender + euidentity + taxonomy2 + rectaxonomy2 + border + sci + gdp + recgdp + eurombmr + receurombmr + recpopulation + taxonomy2*inflcntry+ year + (1|id),
-                             outformula=solidarityfeel ~ inflcntry + fundben + income + polselfpl + age + gender + euidentity + taxonomy2 + rectaxonomy2 + border + sci + gdp + recgdp + eurombmr + receurombmr + taxonomy2*inflcntry + IMR+ year + (1|id),
-                             data=df2)
+                                  outformula=solidarityfeel ~ inflcntry + fundben + income + polselfpl + age + gender + euidentity + taxonomy2 + rectaxonomy2 + border + sci + gdp + recgdp + eurombmr + receurombmr + taxonomy2*inflcntry + IMR+ year + (1|id),
+                                  data=df2)
 
 m4ml <- multilevel_selectionmodel(selformula=solidaritysalience ~ inflcntry + inflpers + demosat + fundben + income + polselfpl + age + gender + euidentity + taxonomy2 + rectaxonomy2 + border + sci + gdp + recgdp + eurombmr + receurombmr + recpopulation + taxonomy2*rectaxonomy2 + taxonomy2*inflcntry+ year + (1|id),
-                             outformula=solidarityfeel ~ inflcntry + fundben + income + polselfpl + age + gender + euidentity + taxonomy2 + rectaxonomy2 + border + sci + gdp + recgdp + eurombmr + receurombmr + taxonomy2*rectaxonomy2 + taxonomy2*inflcntry + IMR+ year + (1|id),
-                             data=df2)
+                                  outformula=solidarityfeel ~ inflcntry + fundben + income + polselfpl + age + gender + euidentity + taxonomy2 + rectaxonomy2 + border + sci + gdp + recgdp + eurombmr + receurombmr + taxonomy2*rectaxonomy2 + taxonomy2*inflcntry + IMR+ year + (1|id),
+                                  data=df2)
 screenreg(list(m1ml$outm, m2ml$outm, m3ml$outm, m4ml$outm))
 
-library(jtools)
-library(margins)
 export_summs(m1ml$outm,m2ml$outm,m3ml$outm,m4ml$outm)
-mod1 <- glm(solidarityfeel ~ gender + polselfpl, data=df2, family=binomial(link="probit"))
-mod2 <- glm(solidarityfeel ~ gender + polselfpl + age, data=df2, family=binomial(link="probit"))
 
 export_summs(m1ml$outm,m2ml$outm,m3ml$outm,m4ml$outm)
 m1_ma <- margins(m1ml$outm)
@@ -905,10 +586,45 @@ export_summs(m1_ma, m2_ma, m3_ma, m4_ma)
 export_summs(m1ml$outm, m1_ma, r.sqaured=F)
 screenreg(list(mod1, mod2))
 
-mod1_margins <- margins(mod2)
-mod2_margins <- margins(mod2)
-export_summs(mod1_margins, mod2_margins)
-plot_model(m4$selm$glm_res, type="pred", terms=c("taxonomy2", "rectaxonomy2"), ci.lvl=0.99)
+#### experimental play around ####
+
+p <- df1 %>%
+  group_by(country, reccountry) %>%
+  summarise(solidarity=sum(ifelse(solidarity=="1",1,0)/n()))
+
+p2 <- p %>%
+  group_by(reccountry) %>%
+  summarise(solidarity=mean(solidarity))
+p3 <- p %>%
+  group_by(country) %>%
+  summarise(solidarity=mean(solidarity))
+px <- left_join(p2,p3, by=c("reccountry" = "country"))
+ggplot(px, aes(solidarity.x, solidarity.y)) + geom_point() + geom_label(aes(label=reccountry)) + geom_abline(slope=1,intercept=0)
+
+m2 <- glmer(solidarity ~ 1 + (1|id) + (1|country), data=filter(df1,solidarity!=99 & country != "United Kingdom"), family="binomial",nAGQ=0)
+m3 <- glmer(solidarity ~ border+ eurombmr*receurombmr + (1|id) + (1|country), data=filter(df1, solidarity!=99 & country != "United Kingdom"), family="binomial", nAGQ=0)
+m4 <- glmer(solidarity ~ eurombmr*receurombmr + weumbrshp*rectweumbrshp + (1|id) + (1|country), data=filter(df1, solidarity!=99 & country != "United Kingdom"), family="binomial", nAGQ=0)
+m5 <- glmer(solidarity ~ border + moneyspent2 + eurombmr*receurombmr + weumbrshp*rectweumbrshp + (1|id) + (1|country), data=filter(df1, solidarity!=99 & country != "United Kingdom"), family="binomial", nAGQ=0)
+screenreg(list(m5))
+plot_model(m5, type="pred", terms=c("eurombmr","receurombmr"))
+plot_model(m5, type="pred", terms=c("border"))
+
+mx4 <- glmer(solidarity ~ inflcntry*rectaxonomy + (1|id) + (1|country), data=df1, family="binomial", nAGQ=0)
+
+screenreg(mx4)
+screenreg(list(mx1,mx2,mx3))
+plot_model(mx3, type="pred", terms=c("taxonomy", "rectaxonomy"))
+plot_model(mx3, type="pred", terms=c("eurombmr", "receurombmr"))
+plot_model(mx4, type="pred", terms=c("inflcntry", "rectaxonomy"))
+
+vif(mx2)
+mx4 <- glmer(solidarity ~ moneyspent2 + eurombmr*receurombmr + border + culdis + (1|id) + (1|country), data=filter(df1, solidarity!=99 & eurombmr != "0" & receurombmr != "0"), family="binomial", nAGQ=0)
+plot_model(mx4, type="pred", terms=c("eurombmr", "receurombmr"))
+
+newdf <- filter(df1,solidarity!=99 & country != "United Kingdom") %>%
+  mutate(yhat=predict(mx, type="response", newdata=filter(df1,solidarity!=99 & country != "United Kingdom")))
+
+
 
 rawdata <- rawdata %>%
   mutate(timeA=strptime(endtime,format="%d/%m/%Y %H:%M"), timeB=strptime(starttime,format="%d/%m/%Y %H:%M")) %>%
