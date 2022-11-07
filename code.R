@@ -464,6 +464,29 @@ ggplot(p, aes(x=country, fill=profile)) +
   geom_bar(position="fill")
 
 #### MULTILEVEL LOGISTIC REGRESSION ####
+
+# clean dataset aas needed
+df2 <- df1 %>%
+  mutate(demosat=as.character(demosat),
+         polselfpl=as.character(polselfpl),
+         inflcntry=as.character(inflcntry),
+         inflpers=as.character(inflpers),
+         income=as.character(income),
+         fundben=as.character(fundben)) %>%
+  mutate(demosat=ifelse(is.na(demosat),"NA", demosat),
+         polselfpl=ifelse(is.na(polselfpl),"NA",polselfpl),
+         inflcntry=ifelse(is.na(inflcntry),"NA",inflcntry),
+         inflpers=ifelse(is.na(inflpers),"NA",inflpers),
+         income=ifelse(is.na(income),"NA",income),
+         fundben=ifelse(is.na(fundben),"NA",fundben)) %>%
+  mutate(demosat=as.factor(demosat),
+         polselfpl=as.factor(polselfpl),
+         inflcntry=as.factor(inflcntry),
+         inflpers=as.factor(inflpers),
+         income=as.factor(income),
+         fundben=as.factor(fundben))
+
+df2 <- na.omit(df2)
 ### HAND-MADE SAMPLE SELECTION MODEL ====
 
 #### Run Everything as a Model with Cluster-Robust Standard Errors ----
@@ -577,13 +600,10 @@ screenreg(list(m1ml$outm, m2ml$outm, m3ml$outm, m4ml$outm))
 
 export_summs(m1ml$outm,m2ml$outm,m3ml$outm,m4ml$outm)
 
-export_summs(m1ml$outm,m2ml$outm,m3ml$outm,m4ml$outm)
+export_summs(m1ml$outm, r.squared=F)
 m1_ma <- margins(m1ml$outm)
-m2_ma <- margins(m2ml$outm)
-m3_ma <- margins(m3ml$outm)
-m4_ma <- margins(m4ml$outm)
 export_summs(m1_ma, m2_ma, m3_ma, m4_ma)
-export_summs(m1ml$outm, m1_ma, r.sqaured=F)
+export_summs(m1ml$outm, m1_ma, r.squared=F)
 screenreg(list(mod1, mod2))
 
 #### experimental play around ####
