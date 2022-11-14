@@ -1,3 +1,32 @@
+#### LOAD PACKAGES ####
+
+library(tidyverse)
+library(ggplot2)
+library(lme4)
+library(sjPlot)
+library(texreg)
+library(forcats)
+library(MASS)
+library(glm.predict)
+library(sjPlot)
+library(crosstable)
+library(gmodels)
+library(ggpubr)
+library(car)
+library(lmerTest)
+library(sjstats)
+library(broom)
+library(mice)
+library(broom.mixed)
+library(sampleSelection)
+library(gridExtra)
+library(miceadds)
+library(jtools)
+library(margins)
+
+#### LOAD DATASET ####
+load("data/data.rda")
+
 #### DATA EXPLORATION ####
 
 m <- df1 %>%
@@ -9,7 +38,6 @@ summary(m$count)
 summary(df1$solidaritysalience)
 m <- filter(df1, solidaritysalience==1)
 summary(m$solidarityfeel)
-
 
 # plotting solidarity salience and feeling on aggregated level
 df_test <- df1 %>%
@@ -30,7 +58,7 @@ ggplot(p, aes(x=country, fill=profile)) +
 
 #### MULTILEVEL LOGISTIC REGRESSION ####
 
-# clean dataset aas needed
+# clean dataset as needed
 df2 <- df1 %>%
   mutate(demosat=as.character(demosat),
          polselfpl=as.character(polselfpl),
@@ -52,6 +80,7 @@ df2 <- df1 %>%
          fundben=as.factor(fundben))
 
 df2 <- na.omit(df2)
+
 ### HAND-MADE SAMPLE SELECTION MODEL ====
 
 #### Run Everything as a Model with Cluster-Robust Standard Errors ----
@@ -163,13 +192,11 @@ m4ml <- multilevel_selectionmodel(selformula=solidaritysalience ~ inflcntry + in
                                   data=df2)
 screenreg(list(m1ml$outm, m2ml$outm, m3ml$outm, m4ml$outm))
 
-export_summs(m1ml$outm,m2ml$outm,m3ml$outm,m4ml$outm)
+m4_ma_o <- margins(m4ml$outm)
+m4_ma_s <- margins(m4ml$selm)
 
-export_summs(m1ml$outm, r.squared=F)
-m1_ma <- margins(m1ml$outm)
-export_summs(m1_ma, m2_ma, m3_ma, m4_ma)
-export_summs(m1ml$outm, m1_ma, r.squared=F)
-screenreg(list(mod1, mod2))
+screenreg(m4ml$selm)
+summary(m4_ma_o)
 
 #### experimental play around ####
 
