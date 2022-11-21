@@ -23,6 +23,7 @@ library(gridExtra)
 library(miceadds)
 library(jtools)
 library(margins)
+library(ICC)
 
 #### LOAD DATASET ####
 load("data/data.rda")
@@ -81,6 +82,14 @@ df2 <- df1 %>%
 
 df2 <- na.omit(df2)
 
+#### SOME INITIAL TESTING ####
+
+model0_a <- glmer(solidarityfeel ~ 1 + (1|id), data=df2, family=binomial(link="probit"), nAGQ=0)
+model0_b <- glmer(solidarityfeel ~ 1 + (1|id) + (1|country), data=df2, family=binomial(link="probit"), nAGQ=0)
+
+performance::icc(model0_a)
+performance::icc(model0_b, by_group = T)
+
 ### HAND-MADE SAMPLE SELECTION MODEL ====
 
 
@@ -119,10 +128,6 @@ m4ml <- multilevel_selectionmodel(selformula=solidaritysalience ~ inflcntry + in
                                   outformula=solidarityfeel ~ inflcntry + fundben + income + polselfpl + age + gender + euidentity + taxonomy2 + rectaxonomy2 + border + sci + gdp + recgdp + eurombmr + receurombmr + taxonomy2*rectaxonomy2 + taxonomy2*inflcntry + IMR+ year + (1|id),
                                   data=df2)
 
-m4mla <- multilevel_selectionmodel(selformula=solidaritysalience ~ inflcntry + inflpers + demosat + fundben + income + polselfpl + age + gender + euidentity + taxonomy2 + rectaxonomy2 + border + sci + gdp + recgdp + eurombmr + receurombmr + recpopulation + taxonomy2*rectaxonomy2 + taxonomy2*inflcntry+ year + (1|id) + (1|country),
-                                  outformula=solidarityfeel ~ inflcntry + fundben + income + polselfpl + age + gender + euidentity + taxonomy2 + rectaxonomy2 + border + sci + gdp + recgdp + eurombmr + receurombmr + taxonomy2*rectaxonomy2 + taxonomy2*inflcntry + IMR+ year + (1|id) + (1|country),
-                                  data=df2)
-
 screenreg(list(m1ml$outm, m2ml$outm, m3ml$outm, m4ml$outm))
 screenreg(list(m4ml$outm, m4mla$outm))
 m4_ma_o <- margins(m4ml$outm)
@@ -151,6 +156,44 @@ p2 <- plot_model(m4ml$outm, type="pred", terms=c("taxonomy2", "inflcntry"), ci.l
 
 ggarrange(p1,p2, ncol=2, labels="AUTO", common.legend=F)
 
+plot_model(m4ml$selm, type="pred", terms=c("taxonomy2", "rectaxonomy2"), ci.lvl=0.99) +
+  labs(title="",  y="Predicted probability of solidarity opinion", x="Cleavage group of respondent") + 
+  scale_colour_manual(values=c("black", "darkgray", "green"), name="Cleavage group of recipient country") +
+  scale_fill_manual(values=c("gray", "lightgray", "green"), name="Cleavage group of recipient country") +
+  scale_y_continuous(limits=c(0.9,1))+
+  theme_pubclean() +
+  theme(text = element_text(family="serif"))
+
+ggsave("figures/figure3.png", width=16, height=11, units="cm")
+#### ROBUSTNESS CHECKS ####
+# w/o Germany
+df3 <- df2 %>% filter(country!="Germany") %>%
+  filter(reccountry!="Germany")
+
+m4ml_aDE <- multilevel_selectionmodel(selformula=solidaritysalience ~ inflcntry + inflpers + demosat + fundben + income + polselfpl + age + gender + euidentity + taxonomy2 + rectaxonomy2 + border + sci + gdp + recgdp + eurombmr + receurombmr + recpopulation + taxonomy2*rectaxonomy2 + taxonomy2*inflcntry+ year + (1|id),
+                                  outformula=solidarityfeel ~ inflcntry + fundben + income + polselfpl + age + gender + euidentity + taxonomy2 + rectaxonomy2 + border + sci + gdp + recgdp + eurombmr + receurombmr + taxonomy2*rectaxonomy2 + taxonomy2*inflcntry + IMR+ year + (1|id),
+                                  data=df3)
+
+# w/o Greece
+df4 <- df2 %>% filter(country!="Greece") %>%
+  filter(reccountry!="Greece")
+
+m4ml_aGR <- multilevel_selectionmodel(selformula=solidaritysalience ~ inflcntry + inflpers + demosat + fundben + income + polselfpl + age + gender + euidentity + taxonomy2 + rectaxonomy2 + border + sci + gdp + recgdp + eurombmr + receurombmr + recpopulation + taxonomy2*rectaxonomy2 + taxonomy2*inflcntry+ year + (1|id),
+                                      outformula=solidarityfeel ~ inflcntry + fundben + income + polselfpl + age + gender + euidentity + taxonomy2 + rectaxonomy2 + border + sci + gdp + recgdp + eurombmr + receurombmr + taxonomy2*rectaxonomy2 + taxonomy2*inflcntry + IMR+ year + (1|id),
+                                      data=df4)
+
+# w/o Hungary
+df5 <- df2 %>% filter(country!="Hungary") %>%
+  filter(reccountry!="Hungary")
+
+m4ml_aHU <- multilevel_selectionmodel(selformula=solidaritysalience ~ inflcntry + inflpers + demosat + fundben + income + polselfpl + age + gender + euidentity + taxonomy2 + rectaxonomy2 + border + sci + gdp + recgdp + eurombmr + receurombmr + recpopulation + taxonomy2*rectaxonomy2 + taxonomy2*inflcntry+ year + (1|id),
+                                      outformula=solidarityfeel ~ inflcntry + fundben + income + polselfpl + age + gender + euidentity + taxonomy2 + rectaxonomy2 + border + sci + gdp + recgdp + eurombmr + receurombmr + taxonomy2*rectaxonomy2 + taxonomy2*inflcntry + IMR+ year + (1|id),
+                                      data=df5)
+
+# compare results
+screenreg(list(m4ml$outm, m4ml_aDE$outm,m4ml_aGR$outm, m4ml_aHU$outm),
+                                                  custom.model.names=c("Original", "wo Germany","wo Greece", "wo Hungary"))
+                               
 #### experimental play around ####
 
 #### Run Everything as a Model with Cluster-Robust Standard Errors ----
